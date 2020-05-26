@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.friday.mapper.PermissionMapper">
+    <resultMap id="BaseResultMap" type="com.friday.entity.SysPermission">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="parent_id" jdbcType="INTEGER" property="parentId" />
+        <result column="name" jdbcType="VARCHAR" property="name" />
+        <result column="css" jdbcType="VARCHAR" property="css" />
+        <result column="href" jdbcType="VARCHAR" property="href" />
+        <result column="type" jdbcType="INTEGER" property="type" />
+        <result column="permission" jdbcType="VARCHAR" property="permission" />
+        <result column="sort" jdbcType="INTEGER" property="sort" />
+        <result column="gmt_create" jdbcType="DATE" property="gmtCreate" />
+        <result column="gmt_modify" jdbcType="DATE" property="gmtModify" />
+    </resultMap>
+
+    <select id="getPermission" resultMap="BaseResultMap">
+        select * from sys_permission
+    </select>
+
+    <select id="listByRoleId" resultMap="BaseResultMap">
+        select sp.* from sys_permission sp inner join sys_role_permission srp on sp.id = srp.permission_id where srp.role_id =#{id}
+    </select>
+
+    <insert id="save" parameterType="com.friday.entity.SysPermission">
+        insert into sys_permission(parent_id, `name`, css, href, `type`, permission, sort,gmt_create) values(#{parentId}, #{name}, #{css}, #{href}, #{type}, #{permission}, #{sort},now())
+    </insert>
+
+    <select id="selectById" parameterType="integer" resultType="com.friday.entity.SysPermission">
+        select * from sys_permission where id = #{id}
+    </select>
+
+    <update id="update" parameterType="com.friday.entity.SysPermission">
+        update sys_permission
+        <set>
+            <if test="parentId !='' and parentId !=null">
+                parent_id = #{parentId},
+            </if>
+            <if test="name !='' and name !=null">
+                `name` = #{name},
+            </if>
+            <if test="css !='' and css !=null">
+                css = #{css},
+            </if>
+            <if test="href !='' and href !=null">
+                href = #{href},
+            </if>
+            <if test="type !='' and type !=null">
+                `type` = #{type},
+            </if>
+            <if test="permission !='' and permission !=null">
+                permission = #{permission},
+            </if>
+            <if test="sort !='' and sort !=null">
+                sort = #{sort},
+            </if>
+                gmt_modify = now()
+        </set>
+          where id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="integer">
+        delete from sys_permission where id= #{id} or parent_id=#{id}
+    </delete>
+
+    <select id="listByUserId" parameterType="integer" resultMap="BaseResultMap">
+        select distinct sp.* from sys_user_role sur inner join sys_role_permission srp on srp.role_id=sur.role_id
+        left join sys_permission sp on sp.id=srp.permission_id where sur.user_id=#{id}
+    </select>
+</mapper>

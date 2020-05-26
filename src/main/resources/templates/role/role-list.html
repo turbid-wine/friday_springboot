@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>角色列表</title>
+        <header th:replace="header::html"></header>
+    </head>
+    <body>
+        <div class="layui-card-body ">
+            <form class="layui-form layui-col-space5">
+                <div class="layui-inline layui-show-xs-block">
+                    <input class="layui-input"  autocomplete="off" placeholder="开始日" name="startTime" id="startTime">
+                </div>
+                <div class="layui-inline layui-show-xs-block">
+                    <input class="layui-input"  autocomplete="off" placeholder="截止日" name="endTime" id="endTime">
+                </div>
+                <div class="layui-inline layui-show-xs-block">
+                    <input type="text" name="roleName"  placeholder="请输入角色名" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-inline layui-show-xs-block">
+                    <button class="layui-btn"  lay-submit="" lay-filter="search"><i class="layui-icon">&#xe615;</i></button>
+                </div>
+            </form>
+        </div>
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header">
+                            <button class="layui-btn layui-btn-danger" onclick="delAll()"><i class="layui-icon"></i>批量删除</button>
+                            <button class="layui-btn" onclick="xadmin.open('添加角色','/role/add',600,600)"><i class="layui-icon"></i>添加</button>
+                        </div>
+                        <div class="layui-card-body ">
+                            <table class="layui-hide" id="role_table" lay-filter="member"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/html" id="toolbarDemo">
+        </script>
+
+        <script type="text/html" id="barDemo">
+            <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+        </script>
+    </body>
+    <script>
+        layui.use(['table','layer','laydate'], function(){
+            var laydate = layui.laydate;
+            var form = layui.form;
+            var table = layui.table;
+            var layer=layui.layer;
+
+            //执行一个laydate实例
+            laydate.render({
+                elem: '#startTime' //指定元素
+                ,format: 'yyyy-MM-dd' //可任意组合
+            });
+
+            //执行一个laydate实例
+            laydate.render({
+                elem: '#endTime' //指定元素
+                ,format: 'yyyy-MM-dd' //可任意组合
+            });
+
+            table.render({
+                elem: '#role_table'
+                ,url: '/role/list' //数据接口
+                ,where:{
+                    "startTime":"",
+                    "endTime":"",
+                    "roleName":""
+                }
+               /* ,request:{
+                    pageName:'page' //页码的参数名称，默认：page=1
+                    ,limitName:'pageSize' // 每页数据量的参数名，默认limit=10
+                }*/
+                ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+                ,defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                    title: '提示'
+                    ,layEvent: 'LAYTABLE_TIPS'
+                    ,icon: 'layui-icon-tips'
+                }]
+                ,page:true // 开启分页
+                ,loading:'true'
+                ,text:{
+                    none:'暂无数据'
+                }
+                ,cols: [
+                    [ //表头
+                    {type:'checkbox',fixed:'left',width:80}
+                    ,{title:'序号',align:'center',sort:true,type:'numbers',width:80}
+                    ,{field: 'id', title: 'ID',hide:true}
+                    ,{field: 'name', title: '角色名',align:'center'}
+                    ,{field: 'description', title: '权限', align:'center'}
+                    ,{field: 'gmtCreate', title: '创建时间', align:'center'}
+                    ,{field: 'gmtModify', title: '上次操作时间', align:'center'}
+                    ,{title: '操作', width: 150, align: 'center', fixed: 'right', toolbar: '#barDemo'}
+                ]
+                ]
+            });
+
+            //监听工具条
+            table.on('tool(member)', function(obj){
+                var data = obj.data; //当行数据
+                if(obj.event === 'del'){
+                    layer.confirm('真的删除吗', function(index){
+                        $.ajax({
+                            url:"/role/delete?id="+data.id,
+                            type:"GET",
+                            success:function(result){
+                                if (result.code==0){
+                                    layer.alert("删除成功", {icon: 1},function (index1) {
+                                        layer.close(index1);
+                                        //xadmin.father_reload();
+                                        table.reload('role_table');
+                                    });
+                                } else {
+                                    layer.alert(result.msg);
+                                }
+                            },
+                        });
+
+                    });
+                } else if(obj.event === 'edit'){
+                    xadmin.open('编辑用户信息','/role/edit?id='+data.id,600,600);
+                }
+            });
+
+            //搜索
+            form.on('submit(search)', function(data){
+                var roleName = data.field.roleName;
+                var startTime = data.field.startTime;
+                var endTime = data.field.endTime;
+                table.render({
+                    elem: '#role_table'
+                    ,url: '/role/list' //数据接口
+                    ,where:{
+                        "startTime":startTime,
+                        "endTime":endTime,
+                        "roleName":roleName
+                    }
+                    ,toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+                    ,defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                        title: '提示'
+                        ,layEvent: 'LAYTABLE_TIPS'
+                        ,icon: 'layui-icon-tips'
+                    }]
+                    ,page:true // 开启分页
+                    ,loading:'true'
+                    ,text:{
+                        none:'暂无数据'
+                    }
+                    ,cols: [
+                        [ //表头
+                            {type:'checkbox',fixed:'left',width:80}
+                            ,{title:'序号',align:'center',sort:true,type:'numbers',width:80}
+                            ,{field: 'id', title: 'ID',hide:true}
+                            ,{field: 'name', title: '角色名',align:'center'}
+                            ,{field: 'description', title: '权限', align:'center'}
+                            ,{field: 'gmtCreate', title: '创建时间', align:'center'}
+                            ,{field: 'gmtModify', title: '上次操作时间', align:'center'}
+                            ,{title: '操作', width: 150, align: 'center', fixed: 'right', toolbar: '#barDemo'}
+                        ]
+                    ]
+                });
+                return false;
+            });
+        });
+    </script>
+</html>

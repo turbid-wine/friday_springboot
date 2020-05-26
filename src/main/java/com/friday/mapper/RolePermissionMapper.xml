@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.friday.mapper.RolePermissionMapper">
+    <resultMap id="BaseResultMap" type="com.friday.entity.SysRolePermission">
+        <id column="role_id" jdbcType="INTEGER" property="roleId"/>
+        <result column="permission_id" jdbcType="INTEGER" property="permissionId" />
+    </resultMap>
+
+    <insert id="save">
+        insert into sys_role_permission(role_id, permission_id) values
+        <foreach collection="permissionIds" item="permissionId"
+                 separator=",">
+            (#{roleId}, #{permissionId})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByRoleId" parameterType="integer">
+        delete from sys_role_permission where role_id=#{id}
+    </delete>
+
+    <select id="selectByRoleId" resultMap="BaseResultMap">
+        select * from sys_role_permission where role_id = #{roleId}
+    </select>
+</mapper>

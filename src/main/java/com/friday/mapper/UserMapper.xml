@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.friday.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="com.friday.entity.SysUser">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="username" jdbcType="VARCHAR" property="userName" />
+        <result column="password" jdbcType="VARCHAR" property="passWord" />
+        <result column="nickname" jdbcType="VARCHAR" property="nickname" />
+        <result column="headImgUrl" jdbcType="VARCHAR" property="headImgUrl" />
+        <result column="sex" jdbcType="INTEGER" property="sex" />
+        <result column="birthday" jdbcType="DATE" property="birthday" />
+        <result column="telphone" jdbcType="VARCHAR" property="telPhone" />
+        <result column="email" jdbcType="VARCHAR" property="email" />
+        <result column="intro" jdbcType="VARCHAR" property="intro" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="gmt_create" jdbcType="DATE" property="gmtCreate" />
+        <result column="gmt_modify" jdbcType="DATE" property="gmtModify" />
+    </resultMap>
+    <select id="selectUserInfo" parameterType="java.util.Map"  resultMap="BaseResultMap">
+        select * from sys_user
+        <where>
+            <if test="startTime!=''">
+                Date(gmt_create) <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime!=''">
+                and Date(gmt_create) <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="userName!=''">
+                and  username like '%${userName}%'
+            </if>
+        </where>
+         limit #{start},#{limit}
+    </select>
+
+    <select id="getUserCount" parameterType="java.util.Map" resultType="INTEGER">
+        select count(*) from sys_user
+        <where>
+            <if test="startTime!=''">
+                Date(gmt_create) <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime!=''">
+                and Date(gmt_create) <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="userName!=''">
+                and  username like '%${userName}%'
+            </if>
+        </where>
+    </select>
+
+    <insert id="saveUser" parameterType="com.friday.entity.SysUser" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into sys_user(username,password,sex,telphone,email,birthday,gmt_create) values(#{userName},#{passWord},#{sex},#{telPhone},#{email},#{birthday},#{gmtCreate})
+    </insert>
+
+    <select id="getUserByName" resultType="com.friday.entity.SysUser">
+        select * from sys_user where username=#{userName}
+    </select>
+
+    <select id="getUserByPhone" resultType="com.friday.entity.SysUser">
+        select * from sys_user where telphone=#{telPhone}
+    </select>
+
+    <select id="getUserByEmail" resultType="com.friday.entity.SysUser">
+        select * from sys_user where email=#{email}
+    </select>
+
+    <select id="getInfoById" resultType="com.friday.dto.UserDto">
+        select s.id,s.username,s.nickname,s.sex,s.telphone,s.email,s.birthday,sur.role_id from sys_user s left join sys_user_role sur on s.id=sur.user_id where s.id=#{id}
+    </select>
+
+    <update id="updateUser" parameterType="com.friday.dto.UserDto">
+        update sys_user
+        <set>
+            <if test="userName!=null || userName!=''">
+                username=#{userName},
+            </if>
+            <if test="telPhone!=null || telPhone!=''">
+                telphone=#{telPhone},
+            </if>
+            <if test="email!=null || email!=''">
+                email=#{email},
+            </if>
+            <if test="birthday!=null || birthday!=''">
+                birthday=#{birthday},
+            </if>
+            <if test="sex!=null || sex!=''">
+                sex=#{sex},
+            </if>
+            <if test="gmtModify!=null || gmtModify!=''">
+                gmt_modify=#{gmtModify}
+            </if>
+            where id=#{id}
+        </set>
+    </update>
+
+    <delete id="deleteUserById" parameterType="integer">
+        delete from sys_user where id=#{id}
+    </delete>
+</mapper>

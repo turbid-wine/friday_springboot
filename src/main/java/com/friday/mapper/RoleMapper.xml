@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.friday.mapper.RoleMapper">
+    <resultMap id="BaseResultMap" type="com.friday.entity.SysRole">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="name" jdbcType="VARCHAR" property="name" />
+        <result column="description" jdbcType="VARCHAR" property="description" />
+        <result column="gmt_create" jdbcType="DATE" property="gmtCreate" />
+        <result column="gmt_modify" jdbcType="DATE" property="gmtModify" />
+    </resultMap>
+
+    <select id="getRoleAll" resultMap="BaseResultMap">
+       select * from sys_role
+    </select>
+
+    <select id="getRoleList" resultMap="BaseResultMap">
+        select * from sys_role
+        <where>
+            <if test="startTime!=''">
+                Date(gmt_create) <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime!=''">
+                and Date(gmt_create) <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="roleName!=''">
+                and  `name` like '%${roleName}%'
+            </if>
+        </where>
+    </select>
+
+    <select id="getRoleCount" resultType="integer">
+        select count(*) from sys_role
+        <where>
+            <if test="startTime!=''">
+                Date(gmt_create) <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime!=''">
+                and Date(gmt_create) <![CDATA[<=]]> #{endTime}
+            </if>
+            <if test="roleName!=''">
+                and  `name` like '%${roleName}%'
+            </if>
+        </where>
+    </select>
+
+    <insert id="save" parameterType="com.friday.entity.SysRole" useGeneratedKeys="true" keyProperty="id" flushCache="true">
+        insert into sys_role(`name`, description, gmt_create) values (#{name}, #{description}, now())
+    </insert>
+
+    <select id="getRoleById" resultType="com.friday.entity.SysRole">
+        select * from sys_role where id=#{id}
+    </select>
+
+    <update id="update" parameterType="com.friday.entity.SysRole">
+        update sys_role
+        <set>
+            <if test="name != '' || name != null">
+                `name` = #{name},
+            </if>
+            <if test="description != '' || description != null">
+                description = #{description},
+            </if>
+                gmt_modify = now()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="integer">
+        delete from sys_role where id = #{roleId}
+    </delete>
+</mapper>
